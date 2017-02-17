@@ -7,6 +7,7 @@ from __future__ import print_function
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 # Generate data
 def generate_data(max_num, size):
@@ -16,7 +17,6 @@ def generate_data(max_num, size):
     data_y = (data_x[:, 0] + data_x[:, 1]).reshape(size, 1)
     return data_x, data_y
 
-#============================
 # Number of samples
 size = 10000
 # Consider integers in range (0, max_num)
@@ -26,7 +26,7 @@ train_data_x, train_data_y = generate_data(max_num, size)
 
 # Parameters
 learning_rate = 0.01  # smaller learning rate results in too slow convergence
-training_epochs = 50
+training_epochs = 100
 batch_size = 100
 display_step = 10
 
@@ -74,13 +74,13 @@ pred = multilayer_perceptron(x, weights, biases)
 cost = tf.reduce_mean(tf.pow(y - pred, 2))
 optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
 
+# Evaluate model
+# correct_prediction_int = tf.equal(tf.to_int32(pred), tf.to_int32(y))
+correct_prediction_int = tf.equal(tf.round(pred), y)
+accuracy = tf.reduce_mean(tf.cast(correct_prediction_int, "float"))
+
 # Initializing the variables
 init = tf.global_variables_initializer()
-
-# Plot
-plt.ylabel('Cost')
-plt.xlabel('Epoch')
-plt.title('Training phase')
 
 # Launch the graph
 with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
@@ -100,37 +100,32 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
             _, c = sess.run([optimizer, cost], feed_dict={x: batch_x, y: batch_y})
             # Compute average loss
             avg_cost += c / total_batch
-        plt.plot(epoch, avg_cost,'*')
+        plt.plot(epoch, math.log(avg_cost),'*')
         # Display logs per epoch step
         if epoch % display_step == 0:
             print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(avg_cost))
     print("Optimization Finished!")
-    # plt.show()
 
-    #=============================================
     # Test model
-    correct_prediction_int = tf.equal(tf.to_int32(pred), tf.to_int32(y))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction_int, "float"))
-
     test_set_size = 100
     # Test the addition operator in the same range of integers (0, max_num)
     test_data_x, test_data_y = generate_data(max_num, test_set_size)
     # Calculate accuracy
     print("Accuracy in the same range: %.2f%%" % (accuracy.eval({x: test_data_x, y: test_data_y}) * 100))
     # Print some predictions
-    prediction = pred.eval(feed_dict={x: test_data_x})
-    print(prediction - test_data_y)
+    prediction = np.rint(pred.eval(feed_dict={x: test_data_x}))
+    # Numpy alternative to tensorflow calculations
+    print("Test prediction from numpy:", (1-np.sum(np.absolute(prediction - test_data_y))/test_data_y.shape[0])*100)
 
-    # correct_prediction = tf.abs(pred - y)
-    # accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-    # print("Accuracy in the same range: %.2f%%" %(accuracy.eval({x: test_data_x, y: test_data_y})*100))
-
-    # Test in a different range of integers
+    # Test in a different range of integers (generalizability)
     test_data_x, test_data_y = generate_data(max_num*max_num, test_set_size)
     # Calculate accuracy
     print("Accuracy in bigger range: %.2f%%" %(accuracy.eval({x: test_data_x, y: test_data_y})*100))
 
-    # Display training phase
+    # Display the training phase
+    plt.ylabel('Log(Cost)')
+    plt.xlabel('Epoch')
+    plt.title('Training phase')
     plt.draw()
     plt.waitforbuttonpress()
 
