@@ -11,10 +11,15 @@ from __future__ import print_function
 
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Generate data
+#============================
+# Number of samples
 size = 10000
+# Consider integers in range (0, max_num)
 max_num = 10
+# Generate samples
 train_data_x = np.random.random_integers(0, max_num, (size, 2))
 # Simulate the addition operator
 train_data_y = (train_data_x[:,0] + train_data_x[:,1]).reshape(size,1)
@@ -28,7 +33,9 @@ display_step = 10
 # Network Parameters
 n_hidden_1 = 256 # 1st layer number of features
 n_hidden_2 = 256 # 2nd layer number of features
-n_input = 2 
+# Input - two numbers to be added
+n_input = 2
+# Output - sum
 n_output = 1
 
 # tf Graph input
@@ -72,8 +79,14 @@ optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
 # Initializing the variables
 init = tf.global_variables_initializer()
 
+# Plot
+plt.ylabel('Cost')
+plt.xlabel('Epoch')
+plt.title('Training phase')
+
 # Launch the graph
-with tf.Session() as sess:
+with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
+    #with tf.device("/cpu:0"):
     sess.run(init)
 
     # Training cycle
@@ -86,19 +99,21 @@ with tf.Session() as sess:
             batch_x, batch_y = train_data_x[index:index+batch_size,:], train_data_y[index:index+batch_size]
             index += batch_size
             # Run optimization op (backprop) and cost op (to get loss value)
-            _, c = sess.run([optimizer, cost], feed_dict={x: batch_x,
-                                                          y: batch_y})
+            _, c = sess.run([optimizer, cost], feed_dict={x: batch_x, y: batch_y})
             # Compute average loss
             avg_cost += c / total_batch
+        plt.plot(epoch, avg_cost,'*')
         # Display logs per epoch step
         if epoch % display_step == 0:
-            print("Epoch:", '%04d' % (epoch+1), "cost=", \
-                "{:.9f}".format(avg_cost))
+            print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(avg_cost))
     print("Optimization Finished!")
+    # plt.show()
 
+
+    #=============================================
     # Test model
     test_set_size = 100
-    # Test in the same range
+    # Test addition operator in the same range of integers (0, max_num)
     # Generate data
     test_data_x = np.random.random_integers(0, max_num, (test_set_size, 2))
     test_data_y = (test_data_x[:, 0] + test_data_x[:, 1]).reshape(test_set_size, 1)
@@ -115,8 +130,7 @@ with tf.Session() as sess:
     # print("Accuracy in the same range: %.2f%%" %(accuracy.eval({x: test_data_x, y: test_data_y})*100))
 
 
-
-    # Test in a different range
+    # Test in a different range of integers
     # Generate test data
     test_data_x = np.random.random_integers(0, max_num*max_num, (test_set_size, 2))
     test_data_y = (test_data_x[:, 0] + test_data_x[:, 1]).reshape(test_set_size, 1)
@@ -124,6 +138,10 @@ with tf.Session() as sess:
     correct_prediction = tf.equal(tf.to_int32(pred), tf.to_int32(y))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     print("Accuracy in bigger range: %.2f%%" %(accuracy.eval({x: test_data_x, y: test_data_y})*100))
+
+    # Display training phase
+    plt.draw()
+    plt.waitforbuttonpress()
 
 
 
