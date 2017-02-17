@@ -1,10 +1,5 @@
 '''
-A Multilayer Perceptron implementation example using TensorFlow library.
-This example is using the MNIST database of handwritten digits
-(http://yann.lecun.com/exdb/mnist/)
 
-Author: Aymeric Damien
-Project: https://github.com/aymericdamien/TensorFlow-Examples/
 '''
 
 from __future__ import print_function
@@ -14,19 +9,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Generate data
+def generate_data(max_num, size):
+    # Generate samples
+    data_x = np.random.random_integers(0, max_num, (size, 2))
+    # Simulate the addition operator
+    data_y = (data_x[:, 0] + data_x[:, 1]).reshape(size, 1)
+    return data_x, data_y
+
 #============================
 # Number of samples
 size = 10000
 # Consider integers in range (0, max_num)
 max_num = 10
 # Generate samples
-train_data_x = np.random.random_integers(0, max_num, (size, 2))
-# Simulate the addition operator
-train_data_y = (train_data_x[:,0] + train_data_x[:,1]).reshape(size,1)
+train_data_x, train_data_y = generate_data(max_num, size)
 
 # Parameters
 learning_rate = 0.01  # smaller learning rate results in too slow convergence
-training_epochs = 200
+training_epochs = 50
 batch_size = 100
 display_step = 10
 
@@ -48,8 +48,6 @@ def multilayer_perceptron(x, weights, biases):
     # Hidden layer with RELU activation
     layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
     layer_1 = tf.nn.relu(layer_1)
-    # layer_1 = tf.nn.sigmoid(layer_1)
-    # layer_1 = tf.nn.tanh(layer_1)
     # Hidden layer with RELU activation
     layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
     layer_2 = tf.nn.relu(layer_2)
@@ -85,7 +83,7 @@ plt.xlabel('Epoch')
 plt.title('Training phase')
 
 # Launch the graph
-with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
+with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
     #with tf.device("/cpu:0"):
     sess.run(init)
 
@@ -109,34 +107,27 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
     print("Optimization Finished!")
     # plt.show()
 
-
     #=============================================
     # Test model
-    test_set_size = 100
-    # Test addition operator in the same range of integers (0, max_num)
-    # Generate data
-    test_data_x = np.random.random_integers(0, max_num, (test_set_size, 2))
-    test_data_y = (test_data_x[:, 0] + test_data_x[:, 1]).reshape(test_set_size, 1)
-    # Calculate accuracy
     correct_prediction_int = tf.equal(tf.to_int32(pred), tf.to_int32(y))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction_int, "float"))
+
+    test_set_size = 100
+    # Test the addition operator in the same range of integers (0, max_num)
+    test_data_x, test_data_y = generate_data(max_num, test_set_size)
+    # Calculate accuracy
     print("Accuracy in the same range: %.2f%%" % (accuracy.eval({x: test_data_x, y: test_data_y}) * 100))
     # Print some predictions
-    prediction = pred.eval(feed_dict={x: test_data_x[:20]})
-    print(prediction - test_data_y[:20])
+    prediction = pred.eval(feed_dict={x: test_data_x})
+    print(prediction - test_data_y)
 
     # correct_prediction = tf.abs(pred - y)
     # accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     # print("Accuracy in the same range: %.2f%%" %(accuracy.eval({x: test_data_x, y: test_data_y})*100))
 
-
     # Test in a different range of integers
-    # Generate test data
-    test_data_x = np.random.random_integers(0, max_num*max_num, (test_set_size, 2))
-    test_data_y = (test_data_x[:, 0] + test_data_x[:, 1]).reshape(test_set_size, 1)
+    test_data_x, test_data_y = generate_data(max_num*max_num, test_set_size)
     # Calculate accuracy
-    correct_prediction = tf.equal(tf.to_int32(pred), tf.to_int32(y))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     print("Accuracy in bigger range: %.2f%%" %(accuracy.eval({x: test_data_x, y: test_data_y})*100))
 
     # Display training phase
