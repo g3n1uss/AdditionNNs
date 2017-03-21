@@ -41,14 +41,17 @@ y = tf.placeholder("float", [None, n_output])
 
 # Build a model
 def define_model(x, y, layers):
+    weights, biases = {}, {}
+    for i in range(1, len(layers)):
+        weights['w'+str(i)] = tf.Variable(tf.random_normal([layers[i - 1], layers[i]]))
+        biases['b'+str(i)] = tf.Variable(tf.random_normal([layers[i]]))
     out = x
-    for i in range(len(layers) - 1):
-        out = tf.add(tf.matmul(out, tf.Variable(tf.random_normal([layers[i], layers[i + 1]]))),
-                                tf.Variable(tf.random_normal([layers[i + 1]])))
+    for i in range(1, len(weights) + 1):
+        out = tf.add(tf.matmul(out, weights['w'+str(i)]), biases['b'+str(i)])
         # Do not add relu in the end, it leads to a terrible performance
-        if i != (len(layers) - 2):
+        if i < len(weights):
             out = tf.nn.relu(out)
-    # out gives predictions
+    # 'out' gives predictions
 
     # Define loss and optimizer
     cost = tf.reduce_mean(tf.pow(y - out, 2))
@@ -56,7 +59,7 @@ def define_model(x, y, layers):
     # Evaluate model
     correct_pred = tf.equal(tf.round(out), y)
     accuracy = tf.reduce_mean(tf.cast(correct_pred, "float"))
-    return out, cost, optimizer, accuracy
+    return [out, weights, biases, cost, optimizer, accuracy]
 
 #===========================================
 # Multilayer non-linear neural net
@@ -64,16 +67,16 @@ def define_model(x, y, layers):
 # Network Parameters
 n_hidden_1 = 256 # 1st layer number of features
 n_hidden_2 = 256 # 2nd layer number of features
-pred_mlp, cost_mlp, optimizer_mlp, accuracy_mlp = define_model(x, y, [n_input, n_hidden_1, n_hidden_2, n_output])
+mlp = define_model(x, y, [n_input, n_hidden_1, n_hidden_2, n_output])
 #=================================
 # Linear perceptron
 #=================================
-pred_p, cost_p, optimizer_p, accuracy_p = define_model(x, y, [n_input, n_output])
+p = define_model(x, y, [n_input, n_output])
 #===============================================================
 
 # All models
-models = {'p':{'pred':pred_p, 'cost':cost_p, 'optimizer':optimizer_p, 'accuracy':accuracy_p},
-          'mlp':{'pred':pred_mlp, 'cost':cost_mlp, 'optimizer':optimizer_mlp, 'accuracy':accuracy_mlp}}
+models = {'p':{'pred':p[0], 'cost':p[3], 'optimizer':p[4], 'accuracy':p[5]},
+          'mlp':{'pred':mlp[0], 'cost':mlp[3], 'optimizer':mlp[4], 'accuracy':mlp[5]}}
 # Map
 model_names_map = {'p':'Linear perceptron', 'mlp':'Multilayer ReLU neural net'}
 # Average costs along training here
@@ -88,7 +91,6 @@ init = tf.global_variables_initializer()
 with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
     #with tf.device("/cpu:0"):
     sess.run(init)
-
     # Training cycle
     for epoch in range(training_epochs):
         # Total number of batches
