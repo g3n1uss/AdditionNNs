@@ -4,5 +4,5 @@ Poor generalizability is a common problem of all artificial neural networks: the
 
 Recently it has been [proposed](https://openreview.net/forum?id=BkbY4psgg) that this limitation is due to absence of recursion in the architectures of neural networks. I am going to investigate this interesting idea here.
 
-The very first idea is to use a linear perceptron and compare it to a non-linear multilayer net. As expected, linear perceptron learns faster. On the other hand, generalizability is pretty bad for both: ~20 and 5% recpectively.
+Let's start with a simple addition, it should work. The very first idea is to use a linear perceptron and compare it to a non-linear multilayer net. As expected, linear perceptron learns faster. On the other hand, generalizability is pretty bad for both: ~20 and 5% recpectively. Smth is wrong because obviously linear perceptron knows how to add numbers.
 ![](https://github.com/g3n1uss/AdditionOperatorNNs/blob/master/plots/LinearPerceptronVsMultilayerRelu.png)
