@@ -39,6 +39,7 @@ n_output = 1
 x = tf.placeholder("float", [None, n_input])
 y = tf.placeholder("float", [None, n_output])
 
+# Build a model
 def define_model(x, y, layers):
     out = x
     for i in range(len(layers) - 1):
@@ -58,7 +59,7 @@ def define_model(x, y, layers):
     return out, cost, optimizer, accuracy
 
 #===========================================
-# Multilayer perceptron
+# Multilayer non-linear neural net
 #===========================================
 # Network Parameters
 n_hidden_1 = 256 # 1st layer number of features
@@ -71,13 +72,15 @@ avr_cost_mlp = 0
 pred_p, cost_p, optimizer_p, accuracy_p = define_model(x, y, [n_input, n_output])
 #===============================================================
 
-# Store paramters of the models here
+# All models
 models = {'p':{'pred':pred_p, 'cost':cost_p, 'optimizer':optimizer_p, 'accuracy':accuracy_p},
           'mlp':{'pred':pred_mlp, 'cost':cost_mlp, 'optimizer':optimizer_mlp, 'accuracy':accuracy_mlp}}
-
-# Change title of the figure window
-fig = plt.gcf()
-fig.canvas.set_window_title('Training non-linear MLP and linear perceptron')
+# Map
+model_names_map = {'p':'Linear perceptron', 'mlp':'Multilayer ReLU neural net'}
+# Average costs along training here
+avr_costs = {}
+for j in models.keys():
+    avr_costs[j] = [0]*training_epochs
 
 # Initializing the variables
 init = tf.global_variables_initializer()
@@ -90,7 +93,7 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
     # Training cycle
     for epoch in range(training_epochs):
         # Store average costs here
-        avr_costs={'p':0, 'mlp':0}
+        # avr_costs={'p':0, 'mlp':0}
 
         # Total number of batches
         total_batch = int(train_data_x.shape[0]/batch_size)
@@ -104,16 +107,12 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
             for j in models.keys():
                 _, c = sess.run([models[j]['optimizer'], models[j]['cost']], feed_dict={x: batch_x, y: batch_y})
                 # Compute average loss
-                avr_costs[j] += c / total_batch
-        # Plot average costs
-        plt.plot(epoch, math.log(avr_costs['p']),'*')
-        plt.plot(epoch, math.log(avr_costs['mlp']), 'o')
-
+                avr_costs[j][epoch] += c / total_batch
         # Display logs per epoch step
         if epoch % display_step == 0:
             print("Epoch:", '%04d' % (epoch+1), end=' ')
             for j in models.keys():
-                print(" cost "+j+"=", "{:.9f}".format(avr_costs[j]))
+                print(" cost "+j+"=", "{:.9f}".format(avr_costs[j][epoch]))
     print("\rOptimization Finished!")
 
     # Test model
@@ -136,9 +135,16 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
         print("Accuracy in a bigger range %s: %.2f%%" % (j, models[j]['accuracy'].eval({x: test_data_x, y: test_data_y}) * 100))
 
     # Display the training phase
+
+    # Change title of the figure window
+    fig = plt.gcf()
+    fig.canvas.set_window_title('Training non-linear MLP and linear perceptron')
+    for j in avr_costs.keys():
+        plt.plot(np.array(range(epoch + 1)), np.log(np.array(avr_costs[j])), 'o', label=model_names_map[j])
     plt.ylabel('Log(Cost)')
     plt.xlabel('Epoch')
     plt.title('Training phase')
+    plt.legend(loc='upper right')
     plt.draw()
     plt.waitforbuttonpress()
 
