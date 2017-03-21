@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import math
 
 # Generate data
-def generate_data(max_num, size):
+def generate_data(start, end, size):
     # Generate samples
-    data_x = np.random.random_integers(0, max_num, (size, 2))
+    data_x = np.random.random_integers(start, end, (size, 2))
     # Simulate the addition operator
     data_y = (data_x[:, 0] + data_x[:, 1]).reshape(size, 1)
     return data_x, data_y
@@ -22,7 +22,7 @@ size = 10000
 # Consider integers in range (0, max_num)
 max_num = 10
 # Generate samples
-train_data_x, train_data_y = generate_data(max_num, size)
+train_data_x, train_data_y = generate_data(0, max_num, size)
 
 # Parameters
 learning_rate = 0.01  # smaller learning rate results in too slow convergence
@@ -116,9 +116,9 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
     print("\rOptimization Finished!")
 
     # Test model
-    test_set_size = 100
+    test_set_size = 1000
     # Test the addition operator in the same range of integers (0, max_num)
-    test_data_x, test_data_y = generate_data(max_num, test_set_size)
+    test_data_x, test_data_y = generate_data(0, max_num, test_set_size)
     # Calculate accuracy
     for j in models.keys():
         print("Accuracy in the same range %s: %.2f%%" % (j, models[j]['accuracy'].eval({x: test_data_x, y: test_data_y}) * 100))
@@ -129,7 +129,7 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
     # print("Test prediction from numpy:", (1-np.sum(np.absolute(prediction - test_data_y))/test_data_y.shape[0])*100)
 
     # Test in a different range of integers (generalizability)
-    test_data_x, test_data_y = generate_data(max_num*max_num, test_set_size)
+    test_data_x, test_data_y = generate_data(max_num, max_num*max_num, test_set_size)
     # Calculate accuracy
     for j in models.keys():
         print("Accuracy in a bigger range %s: %.2f%%" % (j, models[j]['accuracy'].eval({x: test_data_x, y: test_data_y}) * 100))
