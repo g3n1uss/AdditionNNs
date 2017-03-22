@@ -1,5 +1,5 @@
 '''
-
+In this file we store values of weights in hashtables to be able to explore them
 '''
 
 from __future__ import print_function
@@ -91,6 +91,8 @@ init = tf.global_variables_initializer()
 with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
     #with tf.device("/cpu:0"):
     sess.run(init)
+    print('Bias before training is:', p[2]['b1'].eval())
+    print('Weights before training are:', p[1]['w1'].eval())
     # Training cycle
     for epoch in range(training_epochs):
         # Total number of batches
@@ -131,6 +133,9 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
     # Calculate accuracy
     for j in models.keys():
         print("Accuracy in a bigger range %s: %.2f%%" % (j, models[j]['accuracy'].eval({x: test_data_x, y: test_data_y}) * 100))
+
+    print('Bias after trining is:', p[2]['b1'].eval())
+    print('Weights after training are:', p[1]['w1'].eval())
 
     # Display the training phase
 

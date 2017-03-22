@@ -1,5 +1,6 @@
 '''
-
+Model construction is very short and no extra space is used. Although it is impossible to track down parameters of
+neural net
 '''
 
 from __future__ import print_function
