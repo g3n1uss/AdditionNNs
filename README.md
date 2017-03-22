@@ -10,7 +10,7 @@ Let's start with a simple addition, it should work. The very first idea is to us
 
 Ok, it seeme like the source of inability to model the addition operator (even with the linear perceptron, whose fucntion is a simple addition) is inability of a neural net to assign the weights to 1, 1 and bias to 0 (which is equivalent to a simple addition for the linear perceptron). It is possible to come as close as we want to (1, 1, 0), but never reach exactly (1, 1, 0). For large values of inputs it results in predicting the wrong answer with a pretty big error. It is expected because when we ask the perceptron to add two random large numbers we basically want it to perform classification with infinite number of classes.
 
-To conclude it is impossible to teach a neural net to perform a simple addition, because the output is infinite dimensional space. A solution to this problem is to teach the nueral net to perform the grade school addition, and that is exactly what authors of the [paper](https://openreview.net/forum?id=BkbY4psgg) do.
+To conclude it is **impossible** to teach a neural net to perform a simple addition, because the output is infinite dimensional space. A solution to this problem is to teach the neural net to perform the **grade school addition**, and that is exactly what authors of the [paper](https://openreview.net/forum?id=BkbY4psgg) do.
 
 
 ![](https://github.com/g3n1uss/AdditionOperatorNNs/blob/master/plots/LinearPerceptronVsMultilayerRelu.png)
